@@ -60,7 +60,7 @@ class Solution:
         # tn = m*(m-1)/2 - tp - fn - fp
 
         # print("j = {} / ({} + {} + {})".format(tp,tp,fn,fp))
-        return (tp / (tp + fn + fp))
+        return round(tp / (tp + fn + fp), 4)
 
     
     def nmi(self, true_labels: List[int], pred_labels: List[int]) -> float:
