@@ -35,8 +35,8 @@ class Solution:
         for key in confusion_mat.keys():
             i, j = key 
             val = confusion_mat[key]
-            i_sums[j] += val
-            j_sums[i] += val
+            i_sums[i] += val
+            j_sums[j] += val
         # print('i_sums: {} | j_sums: {}'.format(i_sums, j_sums))
         return i_sums, j_sums
 
@@ -73,12 +73,10 @@ class Solution:
         confusion_mat = self.confusion_matrix(true_labels, pred_labels)
         i_sums, j_sums = self.confusion_mat_sums(confusion_mat)
 
-        # Calculate marginal probabilities
         n = sum(confusion_mat.values())
         p_i = [i / n for i in i_sums]
         p_j = [j / n for j in j_sums]
 
-        # Calculate mutual information
         mi = 0
         for key in confusion_mat.keys():
             i, j = key
@@ -86,10 +84,8 @@ class Solution:
             if pij > 0:
                 mi += pij * math.log(pij / (p_i[i] * p_j[j]))
 
-        # Calculate entropy
         h_i = -sum(pi * math.log(pi) if pi > 0 else 0 for pi in p_i)
         h_j = -sum(pj * math.log(pj) if pj > 0 else 0 for pj in p_j)
 
-        # Calculate NMI
-        nmi = mi / (math.sqrt(h_i)*h_j)
+        nmi = mi / (math.sqrt(h_i*h_j))
         return nmi
