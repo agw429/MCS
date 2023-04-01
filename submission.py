@@ -91,5 +91,5 @@ class Solution:
         h_j = -sum(pj * math.log(pj) if pj > 0 else 0 for pj in p_j)
 
         # Calculate NMI
-        nmi = mi / (math.sqrt(h_i*h_j))
+        nmi = mi / (math.sqrt(h_i)*h_j)
         return nmi
