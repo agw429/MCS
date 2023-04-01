@@ -54,9 +54,9 @@ class Solution:
         # m = sum(i_sums)
 
         tp = fp = fn = tn = 0
-        tp = sum(nij*(nij-1)/2 for nij in confusion_mat.values() if nij > 0)
-        fp = sum(ni*(ni-1)/2 for ni in i_sums if ni > 0) - tp
-        fn = sum(nj*(nj-1)/2 for nj in j_sums if nj > 0) - tp
+        tp = sum(nij*(nij-1)/2.0 for nij in confusion_mat.values() if nij > 0)
+        fp = sum(ni*(ni-1)/2.0 for ni in i_sums if ni > 0) - tp
+        fn = sum(nj*(nj-1)/2.0 for nj in j_sums if nj > 0) - tp
         # tn = m*(m-1)/2 - tp - fn - fp
 
         # print("j = {} / ({} + {} + {})".format(tp,tp,fn,fp))
