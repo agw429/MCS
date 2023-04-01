@@ -36,11 +36,11 @@ class Solution:
             if j > max_j:
                 max_j = j
 
-        print(max_i, max_j)
+        # print(max_i, max_j)
         i_sums = [0] * (max_i + 1)
         j_sums = [0] * (max_j + 1)
 
-        print(confusion_mat)
+        # print(confusion_mat)
         for key in confusion_mat.keys():
             # print('\n')
             # print(key)
