@@ -37,16 +37,16 @@ class Solution:
             val = confusion_mat[key]
             i_sums[j] += val
             j_sums[i] += val
-        print('i_sums: {} | j_sums: {}'.format(i_sums, j_sums))
+        # print('i_sums: {} | j_sums: {}'.format(i_sums, j_sums))
         return i_sums, j_sums
 
     def jaccard(self, true_labels: List[int], pred_labels: List[int]) -> float:
         """Calculate the Jaccard index.
         Args:
-          true_labels: list of true cluster labels
-          pred_labels: list of predicted cluster labels
+        true_labels: list of true cluster labels
+        pred_labels: list of predicted cluster labels
         Returns:
-          The Jaccard index. Do NOT round this value.
+        The Jaccard index. Do NOT round this value.
         """
         confusion_mat = self.confusion_matrix(true_labels, pred_labels)
         i_sums, j_sums = self.confusion_mat_sums(confusion_mat)
@@ -54,15 +54,14 @@ class Solution:
         # m = sum(i_sums)
 
         tp = fp = fn = tn = 0
-        tp = sum(nij*(nij-1)/2.0 for nij in confusion_mat.values() if nij > 0)
-        fp = sum(ni*(ni-1)/2.0 for ni in i_sums if ni > 0) - tp
-        fn = sum(nj*(nj-1)/2.0 for nj in j_sums if nj > 0) - tp
+        tp = sum(nij*(nij-1)/2 for nij in confusion_mat.values() if nij > 0)
+        fp = sum(ni*(ni-1)/2 for ni in i_sums if ni > 0) - tp
+        fn = sum(nj*(nj-1)/2 for nj in j_sums if nj > 0) - tp
         # tn = m*(m-1)/2 - tp - fn - fp
 
         # print("j = {} / ({} + {} + {})".format(tp,tp,fn,fp))
-        return round(tp / (tp + fn + fp), 4)
+        return (tp / (tp + fn + fp))
 
-    
     def nmi(self, true_labels: List[int], pred_labels: List[int]) -> float:
         """Calculate the normalized mutual information.
         Args:
@@ -73,25 +72,24 @@ class Solution:
         """
         confusion_mat = self.confusion_matrix(true_labels, pred_labels)
         i_sums, j_sums = self.confusion_mat_sums(confusion_mat)
-        m = sum(i_sums)
 
-        print(confusion_mat)
-        expected_mat = confusion_mat.copy()
-        for i in range(len(i_sums)):
-            for j in range(len(j_sums)):
-                expected_mat[(i,j)] = i_sums[i] * j_sums[j] / m
+        # Calculate marginal probabilities
+        n = sum(confusion_mat.values())
+        p_i = [i / n for i in i_sums]
+        p_j = [j / n for j in j_sums]
 
-        Hi = -sum((val/m)*math.log(val/m) for val in i_sums)
-        Hj = -sum((val/m)*math.log(val/m) for val in j_sums)
-        Iij = 0
-        for key in confusion_mat:
-            val = confusion_mat[key]
-            exp = expected_mat[key]
-            print("key: {} | val: {} | exp: {}".format(key, val, exp))
-            if val > 0: 
-                tmp = (val/m)*math.log((val/m) / (exp / m)) 
-                Iij += tmp
-                print("Iij += ({}/{})*math.log(({}/{})) += {}".format(val, m, val, exp, tmp))
+        # Calculate mutual information
+        mi = 0
+        for key in confusion_mat.keys():
+            i, j = key
+            pij = confusion_mat[key] / n
+            if pij > 0:
+                mi += pij * math.log(pij / (p_i[i] * p_j[j]))
 
-        print("NMI = {} / (sqrt({})({}))".format(round(Iij,4), round(Hi,4), round(Hj,4)))
-        return Iij / (math.sqrt(Hi) * Hj)
+        # Calculate entropy
+        h_i = -sum(pi * math.log(pi) if pi > 0 else 0 for pi in p_i)
+        h_j = -sum(pj * math.log(pj) if pj > 0 else 0 for pj in p_j)
+
+        # Calculate NMI
+        nmi = mi / (math.sqrt(h_i*h_j))
+        return nmi
