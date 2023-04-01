@@ -28,15 +28,29 @@ class Solution:
 
 
     def confusion_mat_sums(self, confusion_mat) -> Tuple[List[int], List[int]]:
-        max_i, max_j = max(confusion_mat.keys(), key=lambda x: (x[0], x[1]))
+
+        max_i, max_j = 0, 0
+        for i, j in confusion_mat.keys():
+            if i > max_i:
+                max_i = i
+            if j > max_j:
+                max_j = j
+
+        print(max_i, max_j)
         i_sums = [0] * (max_i + 1)
         j_sums = [0] * (max_j + 1)
-        
+
+        print(confusion_mat)
         for key in confusion_mat.keys():
+            # print('\n')
+            # print(key)
             i, j = key 
             val = confusion_mat[key]
+            # print(val)
             i_sums[i] += val
+            # print(j_sums)
             j_sums[j] += val
+            # print(j_sums)
         # print('i_sums: {} | j_sums: {}'.format(i_sums, j_sums))
         return i_sums, j_sums
 
