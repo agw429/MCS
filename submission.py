@@ -1,144 +1,97 @@
-from typing import List
+from typing import Dict, List, Tuple
+import math
 
 class Solution:
-    def calc_euclidean_dist(self, x1, x2):
-        return sum((x1[i] - x2[i]) ** 2 for i in range(len(x1))) ** 0.5
-
-    def calc_mean(self, arr):
-        return sum(arr) / len(arr)
-
-    def check_inputs(self, X: List[List[float]], K: int):
-        if (K > len(X)):
-            print("Cannot form more clusters than initial points. Setting K to {}.".format(len(X)))
-            K = len(X)
-        elif (K < 1):
-            print("Cannot form less than 1 cluster. Setting K to 1.")
-            K = 1
-        return (X, K)
-
-    def hclus_single_link(self, X: List[List[float]], K: int) -> List[int]:
-        """Single link hierarchical clustering
+    def confusion_matrix(self, true_labels: List[int], pred_labels: List[int]) -> Dict[Tuple[int, int], int]:
+        """Calculate the confusion matrix and return it as a sparse matrix in dictionary form.
         Args:
-          - X: 2D input data
-          - K: the number of output clusters
+          true_labels: list of true labels
+          pred_labels: list of predicted labels
         Returns:
-          A list of integers (range from 0 to K - 1) that represent class labels.
-          The number does not matter as long as the clusters are correct.
-          For example: [0, 0, 1] is treated the same as [1, 1, 0]"""
+          A dictionary of (true_label, pred_label): count
+        """
+        # matrix = {}
+        # matrix[(1, 1)] = matrix[(1, 0)] = matrix[(0, 1)] = matrix[(0, 0)] = 0
+        # for true, pred in zip(true_labels, pred_labels):
+        #     matrix[(true, pred)] += 1
 
-        X, K = self.check_inputs(X, K)
+        matrix = {}
+        for true, pred in zip(true_labels, pred_labels):
+            if (true, pred) not in matrix:
+                matrix[(true, pred)] = 1
+            else:
+                matrix[(true, pred)] += 1
 
-        # To start, each data point is a cluster
-        clusters = [[i] for i in range(len(X))]
-
-        # Until we have the correct number of clusters, iteratively combine them
-        while len(clusters) > K:
-
-            # First we find the two closest clusters
-            min_dist = float('inf')
-            closest_clusts = (0, 0)
-            for i in range(len(clusters)):
-                for j in range(i+1, len(clusters)):
-
-                    # We must calculate the dist between all pairs of clusters using single link
-                    dist = min([self.calc_euclidean_dist(X[p], X[q])
-                                   for p in clusters[i] for q in clusters[j]])
-                    if dist < min_dist:
-                        min_dist = dist
-                        closest_clusts = (i, j)
-
-            # At each iteration, we merge the two closest clusters
-            clusters[closest_clusts[0]] += clusters[closest_clusts[1]]
-            del clusters[closest_clusts[1]]
-
-        # Finally, we assign cluster labels to the data points
-        labels = [0] * len(X)
-        for i, c in enumerate(clusters):
-            for p in c:
-                labels[p] = i
-        return labels
+        sorted_keys = sorted(matrix.keys())
+        sorted_data = {k: matrix[k] for k in sorted_keys}
+        return sorted_data
 
 
-    def hclus_average_link(self, X: List[List[float]], K: int) -> List[int]:
-        """Average link hierarchical clustering
-        Args:
-          - X: 2D input data
-          - K: the number of output clusters
-        Returns:
-          A list of integers (range from 0 to K - 1) that represent class labels.
-          The number does not matter as long as the clusters are correct.
-          For example: [0, 0, 1] is treated the same as [1, 1, 0]"""
+    def confusion_mat_sums(self, confusion_mat) -> Tuple[List[int], List[int]]:
+        max_i, max_j = max(confusion_mat.keys(), key=lambda x: (x[0], x[1]))
+        i_sums = [0] * (max_i + 1)
+        j_sums = [0] * (max_j + 1)
         
-        X, K = self.check_inputs(X, K)
-        
-        # To start, each data point is a cluster
-        clusters = [[i] for i in range(len(X))]
+        for key in confusion_mat.keys():
+            i, j = key 
+            val = confusion_mat[key]
+            i_sums[j] += val
+            j_sums[i] += val
+        print('i_sums: {} | j_sums: {}'.format(i_sums, j_sums))
+        return i_sums, j_sums
 
-        # Until we have the correct number of clusters, iteratively combine them
-        while len(clusters) > K:
-
-            # First we find the two closest clusters
-            min_dist = float('inf')
-            closest_clusts = (0, 0)
-            for i in range(len(clusters)):
-                for j in range(i+1, len(clusters)):
-
-                    # We must calculate the dist between all pairs of clusters using average link
-                    dist = self.calc_mean([self.calc_euclidean_dist(X[p], X[q]) for p in clusters[i] for q in clusters[j]])
-                    if dist < min_dist:
-                        min_dist = dist
-                        closest_clusts = (i, j)
-                        
-            # At each iteration, we merge the two closest clusters
-            clusters[closest_clusts[0]] += clusters[closest_clusts[1]]
-            del clusters[closest_clusts[1]]
-
-        # Finally, we assign cluster labels to the data points
-        labels = [0] * len(X)
-        for i, c in enumerate(clusters):
-            for p in c:
-                labels[p] = i
-        return labels
-
-
-    def hclus_complete_link(self, X: List[List[float]], K: int) -> List[int]:
-        """Complete link hierarchical clustering
+    def jaccard(self, true_labels: List[int], pred_labels: List[int]) -> float:
+        """Calculate the Jaccard index.
         Args:
-          - X: 2D input data
-          - K: the number of output clusters
+          true_labels: list of true cluster labels
+          pred_labels: list of predicted cluster labels
         Returns:
-          A list of integers (range from 0 to K - 1) that represent class labels.
-          The number does not matter as long as the clusters are correct.
-          For example: [0, 0, 1] is treated the same as [1, 1, 0]"""
+          The Jaccard index. Do NOT round this value.
+        """
+        confusion_mat = self.confusion_matrix(true_labels, pred_labels)
+        i_sums, j_sums = self.confusion_mat_sums(confusion_mat)
 
-        X, K = self.check_inputs(X, K)
+        # m = sum(i_sums)
 
-        # To start, each data point is a cluster
-        clusters = [[i] for i in range(len(X))]
+        tp = fp = fn = tn = 0
+        tp = sum(nij*(nij-1)/2 for nij in confusion_mat.values() if nij > 0)
+        fp = sum(ni*(ni-1)/2 for ni in i_sums if ni > 0) - tp
+        fn = sum(nj*(nj-1)/2 for nj in j_sums if nj > 0) - tp
+        # tn = m*(m-1)/2 - tp - fn - fp
 
-        # Until we have the correct number of clusters, iteratively combine them
-        while len(clusters) > K:
+        # print("j = {} / ({} + {} + {})".format(tp,tp,fn,fp))
+        return (tp / (tp + fn + fp))
 
-            # First we find the two closest clusters
-            min_dist = float('inf')
-            closest_clusts = (0, 0)
-            for i in range(len(clusters)):
-                for j in range(i+1, len(clusters)):
+    
+    def nmi(self, true_labels: List[int], pred_labels: List[int]) -> float:
+        """Calculate the normalized mutual information.
+        Args:
+          true_labels: list of true cluster labels
+          pred_labels: list of predicted cluster labels
+        Returns:
+          The normalized mutual information. Do NOT round this value.
+        """
+        confusion_mat = self.confusion_matrix(true_labels, pred_labels)
+        i_sums, j_sums = self.confusion_mat_sums(confusion_mat)
+        m = sum(i_sums)
 
-                    # We must calculate the dist between all pairs of clusters using complete link
-                    dist = max([self.calc_euclidean_dist(X[p], X[q])
-                                for p in clusters[i] for q in clusters[j]])
-                    if dist < min_dist:
-                        min_dist = dist
-                        closest_clusts = (i, j)
+        print(confusion_mat)
+        expected_mat = confusion_mat.copy()
+        for i in range(len(i_sums)):
+            for j in range(len(j_sums)):
+                expected_mat[(i,j)] = i_sums[i] * j_sums[j] / m
 
-            # At each iteration, we merge the two closest clusters
-            clusters[closest_clusts[0]] += clusters[closest_clusts[1]]
-            del clusters[closest_clusts[1]]
+        Hi = -sum((val/m)*math.log(val/m) for val in i_sums)
+        Hj = -sum((val/m)*math.log(val/m) for val in j_sums)
+        Iij = 0
+        for key in confusion_mat:
+            val = confusion_mat[key]
+            exp = expected_mat[key]
+            print("key: {} | val: {} | exp: {}".format(key, val, exp))
+            if val > 0: 
+                tmp = (val/m)*math.log((val/m) / (exp / m)) 
+                Iij += tmp
+                print("Iij += ({}/{})*math.log(({}/{})) += {}".format(val, m, val, exp, tmp))
 
-        # Finally, we assign cluster labels to the data points
-        labels = [0] * len(X)
-        for i, c in enumerate(clusters):
-            for p in c:
-                labels[p] = i
-        return labels
+        print("NMI = {} / (sqrt({})({}))".format(round(Iij,4), round(Hi,4), round(Hj,4)))
+        return Iij / (math.sqrt(Hi) * Hj)
