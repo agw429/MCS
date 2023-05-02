@@ -52,9 +52,6 @@ class Node:
       print(node.for_output())
       if node.right != None: self.pre_order(node.right)
 
-      
-      
-
 
 class Solution:
 
@@ -84,6 +81,8 @@ class Solution:
               label_counts[label[i]] = 1
 
       # label_p = {key: value/n for key, value in label_counts.items()}
+      infos = [self.entropy(label_counts[label] / n) for label in label_counts]
+      # print(f"infos: {infos}")
       info_D = sum([self.entropy(label_counts[label] / n) for label in label_counts])
       info_A = self.split_info(data, label, split_dim, split_point)
       return info_D - info_A
@@ -102,6 +101,8 @@ class Solution:
       Returns:
       float: The calculated Info_A value for the given split. Do NOT round this value
       """
+
+      # print(f"Called split_info on data set of size {len(data)} with {len(data[0])} attributes and {len(set(label))} classifications")
 
       n = len(data)
       left_count = 0
@@ -123,6 +124,11 @@ class Solution:
               else:
                   right_label_counts[label[i]] = 1
 
+      # print(f"split_point = {split_point}")
+      # print(f"split_dim = {split_dim}")
+      # print(f"left_label_counts = {left_label_counts}")
+      # print(f"right_label_counts = {right_label_counts}\n")
+
       p_left = left_count / n
       p_right = right_count / n
 
@@ -130,7 +136,9 @@ class Solution:
           return float(0)
 
       left_entropy = sum([self.entropy(left_label_counts[label] / left_count) for label in left_label_counts])
+      # print(f"left entropy = {left_entropy}\n")
       right_entropy = sum([self.entropy(right_label_counts[label] / right_count) for label in right_label_counts])
+      # print(f"right entropy = {right_entropy}\n")
 
       return p_left * left_entropy + p_right * right_entropy
 
@@ -159,25 +167,32 @@ class Solution:
         # If stopping condition met, set the node's label and return
         if len(data) == 0 or depth >= self.max_depth:
             return
-            
+      
+        # print(f"\nCalled split_node at depth = {depth} on data set of size {len(data)} with {len(data[0])} attributes and {len(set(labels))} classifications\n")
+        
         # Find the best feature to split the data
         best_feature, best_split_point = None, None
         best_info_gain = 0
         features = range(len(data[0]))
         for feature in features:
+            # print(f"Feature {feature}")
             
             a = sorted([data[i][feature] for i in range(len(data))])
+            # print(a)
             split_points = set()
             for i in range(len(a)-1):
                 midpoint = (a[i] + a[i+1]) / 2.0
                 split_points.add(midpoint)
             split_points = sorted(split_points)
+            # print(f"Split points {split_points}")
             for split_point in split_points:
                 info_gain = self.info_gain(data, labels, feature, split_point)
+                # print(f"f = {feature} sp = {split_point} I = {info_gain}\n")
                 if info_gain > best_info_gain:
                     best_info_gain = info_gain
                     best_feature = feature
                     best_split_point = split_point
+        # print(f"WINNER: f = {best_feature} sp = {best_split_point} I = {best_info_gain}")
 
         if best_info_gain == 0 or best_info_gain == 1:
             return
@@ -197,12 +212,15 @@ class Solution:
         node.split_point = best_split_point
         node.left = Node()
         node.right = Node()
+        # print(f"parent node: {node.to_str()}")
 
         # if len(left_data) > 0: 
         self.split_node(node.left, left_data, left_labels, depth + 1)
+        # print(f"left node: {node.left.to_str()}")
 
         # if len(right_data) > 0: 
         self.split_node(node.right, right_data, right_labels, depth + 1)
+        # print(f"right node: {node.right.to_str()}")
 
   def fit(self, train_data: List[List[float]], train_label: List[int]) -> None:
 
@@ -255,13 +273,12 @@ class Solution:
     # Traverse the decision tree and predict the label for each test data point
     for point in test_data:
         current_node = self.root
-        while not current_node._is_leaf:
+        while not current_node._is_leaf():
             # Determine which child node to traverse based on the split condition
             if point[current_node.split_dim] <= current_node.split_point:
-                current_node = current_node.left_child
+                current_node = current_node.left
             else:
-                current_node = current_node.right_child
-
+                current_node = current_node.right
         # Add the predicted label to the list of predicted labels
         predicted_labels.append(current_node.label)
 
