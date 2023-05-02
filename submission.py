@@ -164,9 +164,11 @@ class Solution:
                 label_counts[labels[i]] = 1
 
         max_counts = max(label_counts.values())
+        l = None
         for label in label_counts:
             if label_counts[label] == max_counts:
                 node.label = label
+                break
 
         # If stopping condition met, set the node's label and return
         if len(data) == 0 or depth >= self.max_depth:
