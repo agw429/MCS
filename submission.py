@@ -68,10 +68,6 @@ class Solution:
       info_D = 1
 
       n = len(data)
-      left_count = 0
-      left_label_counts = {}
-      right_count = 0
-      right_label_counts = {}
 
       label_counts = {}
       for i in range(n):
@@ -158,18 +154,24 @@ class Solution:
         """
         node.depth = depth
 
-        counts = [0] * len(range(0, max(labels)))
-        for label in labels:
-            counts[label-1] += 1
-    
-        node.label = max(range(len(counts)), key=counts.__getitem__) + 1
+        n = len(data)
+
+        label_counts = {}
+        for i in range(n):
+            if labels[i] in label_counts:
+                label_counts[labels[i]] += 1
+            else:
+                label_counts[labels[i]] = 1
+
+        max_counts = max(label_counts.values())
+        for label in label_counts:
+            if label_counts[label] == max_counts:
+                node.label = label
 
         # If stopping condition met, set the node's label and return
         if len(data) == 0 or depth >= self.max_depth:
             return
-      
-        # print(f"\nCalled split_node at depth = {depth} on data set of size {len(data)} with {len(data[0])} attributes and {len(set(labels))} classifications\n")
-        
+              
         # Find the best feature to split the data
         best_feature, best_split_point = None, None
         best_info_gain = 0
@@ -194,8 +196,8 @@ class Solution:
                     best_split_point = split_point
         # print(f"WINNER: f = {best_feature} sp = {best_split_point} I = {best_info_gain}")
 
-        if best_info_gain == 0 or best_info_gain == 1:
-            return
+        # if best_info_gain == 0:
+        #     return
 
         # Split the data based on the best feature and split point
         left_data, left_labels, right_data, right_labels = [], [], [], []
@@ -206,6 +208,9 @@ class Solution:
             else:
                 right_data.append(data[i])
                 right_labels.append(labels[i])
+
+        # print(f"left labels: {left_labels}")
+        # print(f"right labels: {right_labels}")
 
         # Create child nodes and recursively split them
         node.split_dim = best_feature
@@ -218,8 +223,8 @@ class Solution:
         self.split_node(node.left, left_data, left_labels, depth + 1)
         # print(f"left node: {node.left.to_str()}")
 
-        # if len(right_data) > 0: 
-        self.split_node(node.right, right_data, right_labels, depth + 1)
+        if len(right_data) > 0: 
+          self.split_node(node.right, right_data, right_labels, depth + 1)
         # print(f"right node: {node.right.to_str()}")
 
   def fit(self, train_data: List[List[float]], train_label: List[int]) -> None:
