@@ -190,14 +190,17 @@ class Solution:
             for split_point in split_points:
                 info_gain = self.info_gain(data, labels, feature, split_point)
                 # print(f"f = {feature} sp = {split_point} I = {info_gain}\n")
-                if info_gain > best_info_gain:
+                if info_gain > best_info_gain and info_gain < 1:
                     best_info_gain = info_gain
+                    # print(f"best_info_gain: {best_info_gain}")
                     best_feature = feature
+                    # print(f"best_feature: {best_feature}")
                     best_split_point = split_point
+                    # print(f"best_split_point: {best_split_point}")
         # print(f"WINNER: f = {best_feature} sp = {best_split_point} I = {best_info_gain}")
 
-        # if best_info_gain == 0:
-        #     return
+        if best_info_gain == 0:
+            return
 
         # Split the data based on the best feature and split point
         left_data, left_labels, right_data, right_labels = [], [], [], []
@@ -223,8 +226,8 @@ class Solution:
         self.split_node(node.left, left_data, left_labels, depth + 1)
         # print(f"left node: {node.left.to_str()}")
 
-        if len(right_data) > 0: 
-          self.split_node(node.right, right_data, right_labels, depth + 1)
+        # if len(right_data) > 0: 
+        self.split_node(node.right, right_data, right_labels, depth + 1)
         # print(f"right node: {node.right.to_str()}")
 
   def fit(self, train_data: List[List[float]], train_label: List[int]) -> None:
