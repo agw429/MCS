@@ -44,7 +44,7 @@ class Solution:
     n_train = len(X_train)
     likelihoods = [{} for _ in range(n_features)] * n_classes
     for c in range(n_classes):
-      print(f"CLASS {c}")
+      # print(f"CLASS {c}")
       # Collect all training datapoints belonging to class c
       X_train_c = [X_train[i] for i in range(n_train) if Y_train[i] == c+1]
       # Count the number of times each feature value occurs for each class
@@ -72,7 +72,7 @@ class Solution:
         for value in value_counts:
           value = int(value)
           likelihoods[c][value,i] = (value_counts[value]+0.1) /  (len(X_train_c)+0.1*(len(set([x[i] for x in X_train])))) #n_features) #
-          print(f"feature {i} value {value} likelihood = {likelihoods[c][value,i]}")
+          # print(f"feature {i} value {value} likelihood = {likelihoods[c][value,i]}")
     # Classify the test data
     n_test = len(X_test)
     y_pred = []
@@ -88,6 +88,6 @@ class Solution:
             # Laplacian
             posteriors[c] *= 0.1 / (len(X_train_c)+0.1*(len(set([x[i] for x in X_train])))) #(len(X_train_c)+0.1*n_features) #
       # Classify the test datapoint by choosing the class with the highest posterior probability
-      print(f"posteriors {posteriors}")
+      # print(f"posteriors {posteriors}")
       y_pred.append(posteriors.index(max(posteriors))+1)
     return y_pred
